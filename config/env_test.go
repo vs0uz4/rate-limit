@@ -1,12 +1,27 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vs0uz4/rate-limit/internal/domain/errors"
+	domainErrors "github.com/vs0uz4/rate-limit/internal/domain/errors"
 )
+
+func TestLoadConfigExecPathError(t *testing.T) {
+	getExecutablePath = func() (string, error) {
+		return "", errors.New("mock error")
+	}
+	defer func() {
+		getExecutablePath = os.Executable
+	}()
+
+	config, err := LoadConfig()
+
+	assert.Nil(t, config, "Configuration should be null when os.Executable fails")
+	assert.Equal(t, domainErrors.ErrGettingExecPath, err, "Unexpected error returned")
+}
 
 func TestLoadConfig(t *testing.T) {
 	envContent := `
@@ -38,7 +53,7 @@ func TestLoadConfigMissingEnvFile(t *testing.T) {
 
 	assert.Nil(t, config, "Configuration should be null if .env is missing")
 	assert.Error(t, err, "Expected an error when the .env file was missing")
-	assert.Equal(t, errors.ErrEnvFileNotFound, err, "Unexpected error message")
+	assert.Equal(t, domainErrors.ErrEnvFileNotFound, err, "Unexpected error message")
 }
 
 func TestLoadConfigMissingRedisHost(t *testing.T) {
@@ -56,7 +71,7 @@ BLOCK_DURATION=60
 
 	assert.Nil(t, config, "Configuration should be null if REDIS_HOST is missing")
 	assert.Error(t, err, "Expected an error when REDIS_HOST is missing")
-	assert.Equal(t, errors.ErrRedisHostRequired, err, "Unexpected error message")
+	assert.Equal(t, domainErrors.ErrRedisHostRequired, err, "Unexpected error message")
 }
 
 func TestLoadConfigWithDefaultValues(t *testing.T) {

@@ -8,16 +8,19 @@ import (
 	"github.com/vs0uz4/rate-limit/internal/domain/errors"
 )
 
+var getExecutablePath = os.Executable
+
 type Config struct {
 	RedisHost         string
 	RedisPort         string
 	LimiterIPLimit    int
 	LimiterTokenLimit int
 	BlockDuration     int
+	WebServerPort     string
 }
 
 func LoadConfig() (*Config, error) {
-	ex, err := os.Executable()
+	ex, err := getExecutablePath()
 	if err != nil {
 		return nil, errors.ErrGettingExecPath
 	}
@@ -52,5 +55,6 @@ func LoadConfig() (*Config, error) {
 		LimiterIPLimit:    viper.GetInt("LIMITER_IP_LIMIT"),
 		LimiterTokenLimit: viper.GetInt("LIMITER_TOKEN_LIMIT"),
 		BlockDuration:     viper.GetInt("BLOCK_DURATION"),
+		WebServerPort:     "8080",
 	}, nil
 }
