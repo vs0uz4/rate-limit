@@ -50,11 +50,10 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		RedisHost:         viper.GetString("REDIS_HOST"),
-		RedisPort:         viper.GetString("REDIS_PORT"),
-		LimiterIPLimit:    viper.GetInt("LIMITER_IP_LIMIT"),
-		LimiterTokenLimit: viper.GetInt("LIMITER_TOKEN_LIMIT"),
-		BlockDuration:     viper.GetInt("BLOCK_DURATION"),
-		WebServerPort:     "8080",
+		RedisHost:      viper.GetString("REDIS_HOST"),
+		RedisPort:      viper.GetString("REDIS_PORT"),
+		LimiterIPLimit: viper.GetInt("LIMITER_IP_LIMIT"),
+		BlockDuration:  viper.GetInt("BLOCK_DURATION"),
+		WebServerPort:  "8080",
 	}, nil
 }
