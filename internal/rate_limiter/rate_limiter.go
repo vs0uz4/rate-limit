@@ -29,5 +29,21 @@ func NewRedisRateLimiter(config Config, redis contract.RedisClient) *RedisRateLi
 }
 
 func (r *RedisRateLimiter) Allow(ctx context.Context, key string) (bool, error) {
-	return false, nil
+	count, err := r.redis.Incr(ctx, key)
+	if err != nil {
+		return false, err
+	}
+
+	if count == 1 {
+		_, err = r.redis.SetNX(ctx, key, 1, r.config.BlockDuration)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	if count > int64(r.config.Limit) {
+		return false, nil
+	}
+
+	return true, nil
 }
