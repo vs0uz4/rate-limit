@@ -3,6 +3,7 @@ module github.com/vs0uz4/rate-limit
 go 1.22.3
 
 require (
+	github.com/go-chi/chi/v5 v5.2.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 )
