@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -11,12 +12,12 @@ import (
 var getExecutablePath = os.Executable
 
 type Config struct {
-	RedisHost         string
-	RedisPort         string
-	LimiterIPLimit    int
-	LimiterTokenLimit int
-	BlockDuration     int
-	WebServerPort     string
+	WebServerPort  string
+	RedisHost      string
+	RedisPort      string
+	LimiterIPLimit int
+	BlockDuration  int
+	TokenLimits    map[string]int
 }
 
 func LoadConfig() (*Config, error) {
@@ -36,7 +37,6 @@ func LoadConfig() (*Config, error) {
 
 	viper.SetDefault("REDIS_PORT", "6379")
 	viper.SetDefault("LIMITER_IP_LIMIT", 5)
-	viper.SetDefault("LIMITER_TOKEN_LIMIT", 10)
 	viper.SetDefault("BLOCK_DURATION", 300)
 
 	err = viper.ReadInConfig()
@@ -49,11 +49,21 @@ func LoadConfig() (*Config, error) {
 		return nil, errors.ErrRedisHostRequired
 	}
 
+	tokenLimits := make(map[string]int)
+	tokenLimitsJSON := viper.GetString("TOKEN_LIMITS")
+	if tokenLimitsJSON != "" {
+		err := json.Unmarshal([]byte(tokenLimitsJSON), &tokenLimits)
+		if err != nil {
+			return nil, errors.ErrInvalidTokenLimits
+		}
+	}
+
 	return &Config{
+		WebServerPort:  "8080",
 		RedisHost:      viper.GetString("REDIS_HOST"),
 		RedisPort:      viper.GetString("REDIS_PORT"),
 		LimiterIPLimit: viper.GetInt("LIMITER_IP_LIMIT"),
 		BlockDuration:  viper.GetInt("BLOCK_DURATION"),
-		WebServerPort:  "8080",
+		TokenLimits:    tokenLimits,
 	}, nil
 }

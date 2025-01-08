@@ -23,12 +23,32 @@ func TestLoadConfigExecPathError(t *testing.T) {
 	assert.Equal(t, domainErrors.ErrGettingExecPath, err, "Unexpected error returned")
 }
 
+func TestLoadConfigWithInvalidTokenLimits(t *testing.T) {
+	envContent := `
+REDIS_HOST=testhost
+REDIS_PORT=1234
+LIMITER_IP_LIMIT=10
+BLOCK_DURATION=60
+TOKEN_LIMITS=invalid_json
+`
+	err := os.WriteFile(".env", []byte(envContent), 0644)
+	assert.NoError(t, err)
+	defer os.Remove(".env")
+
+	config, err := LoadConfig()
+
+	assert.Nil(t, config)
+	assert.Error(t, err)
+	assert.Equal(t, domainErrors.ErrInvalidTokenLimits, err, "Expected invalid token limits error")
+}
+
 func TestLoadConfig(t *testing.T) {
 	envContent := `
 REDIS_HOST=testhost
 REDIS_PORT=1234
 LIMITER_IP_LIMIT=10
 BLOCK_DURATION=60
+TOKEN_LIMITS={"token1":50,"token2":100}
 `
 	err := os.WriteFile(".env", []byte(envContent), 0644)
 	assert.NoError(t, err, "Failed to create temporary .env file")
@@ -42,6 +62,30 @@ BLOCK_DURATION=60
 	assert.Equal(t, "1234", config.RedisPort)
 	assert.Equal(t, 10, config.LimiterIPLimit)
 	assert.Equal(t, 60, config.BlockDuration)
+	assert.Equal(t, 50, config.TokenLimits["token1"])
+	assert.Equal(t, 100, config.TokenLimits["token2"])
+}
+
+func TestLoadConfigWithEmptyTokenLimits(t *testing.T) {
+	envContent := `
+REDIS_HOST=testhost
+REDIS_PORT=1234
+LIMITER_IP_LIMIT=10
+BLOCK_DURATION=60
+`
+	err := os.WriteFile(".env", []byte(envContent), 0644)
+	assert.NoError(t, err)
+	defer os.Remove(".env")
+
+	config, err := LoadConfig()
+
+	assert.NoError(t, err)
+	assert.NotNil(t, config)
+	assert.Equal(t, "testhost", config.RedisHost)
+	assert.Equal(t, "1234", config.RedisPort)
+	assert.Equal(t, 10, config.LimiterIPLimit)
+	assert.Equal(t, 60, config.BlockDuration)
+	assert.Empty(t, config.TokenLimits)
 }
 
 func TestLoadConfigMissingEnvFile(t *testing.T) {
