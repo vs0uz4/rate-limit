@@ -2,7 +2,6 @@ package rate_limiter
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/vs0uz4/rate-limit/internal/contract"
@@ -53,7 +52,6 @@ func (r *RateLimiter) Allow(ctx context.Context, key string, token string) (bool
 		return false, err
 	}
 
-	log.Printf("Checking TTL for rateKey: %v", ttl)
 	if ttl <= 0 {
 		err = r.store.Expire(ctx, rateKey, time.Second)
 		if err != nil {
