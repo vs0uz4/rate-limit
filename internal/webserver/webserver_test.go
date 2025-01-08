@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/vs0uz4/rate-limit/config"
+	"github.com/vs0uz4/rate-limit/internal/mock"
 )
 
 func TestPingEndpoint(t *testing.T) {
@@ -27,16 +28,18 @@ func TestPingEndpoint(t *testing.T) {
 }
 
 func TestStartServer(t *testing.T) {
+	mockLimiter := &mock.MockRateLimiter{Allowed: true}
+
 	cfg := &config.Config{
-		WebServerPort: "8080",
+		WebServerPort: "9090",
 	}
 
 	go func() {
-		err := Start(cfg)
+		err := Start(cfg, mockLimiter)
 		assert.NoError(t, err, "Unexpected error when start webserver")
 	}()
 
-	resp, err := http.Get("http://localhost:8080/ping")
+	resp, err := http.Get("http://localhost:9090/ping")
 	assert.NoError(t, err, "Error when accessing the server")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Unexpected status code")
 }

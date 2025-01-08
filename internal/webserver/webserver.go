@@ -6,10 +6,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/vs0uz4/rate-limit/config"
+	"github.com/vs0uz4/rate-limit/internal/contract"
+	"github.com/vs0uz4/rate-limit/internal/webserver/middleware"
 )
 
-func Start(cfg *config.Config) error {
+func Start(cfg *config.Config, limiter contract.RateLimiter) error {
 	r := chi.NewRouter()
+
+	r.Use(middleware.RateLimiterMiddleware(limiter))
 
 	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
