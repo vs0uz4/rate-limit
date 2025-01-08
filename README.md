@@ -30,7 +30,7 @@ Este projeto faz parte da Pós GoExpert como desafio, nele precisaríamos criar 
 1 - **Endereço IP**: O rate limiter deve restringir o número de requisições recebidas de um único endereço de IP dentro de um intervalo de tempo de 1 segundo.
 
 2 - **Token de Acesso**: O rate limiter deve também limitar as requisições baseadas em um TOKEN de acesso único, permitindo diferentes limites de tempo de expiração para diferentes tokens. O token deve ser informado no header da requisição, no seguinte formato:
-    a - API_KEY: <TOKEN>
+    a - API_KEY: {TOKEN}
 
 > [!IMPORTANT]
 > As configurações de limite do token de acesso devem sobrepor as do IP. Por exemplo, se o limite do IP é de 10 req/s e a de um determinado token é de 100 req/s, o rate limiter deve utilizar as informações de limite do token.
@@ -121,6 +121,13 @@ A aplicação possui **100%** de cobertura de testes nas seguintes áreas:
 - Middleware para controle de requisições.
 - Integração com o Redis, , incluindo inicialização e validação do cliente.
 - Cenários de erro, incluindo persistência e TTL.
+
+Caso queira visualizar as informações dos relatórios da execução e cobertura dos testes mais recentes, basta acesssar o link abaixo:
+
+- [Relatórios](.doc/TEST_REPORT.md)
+
+> [!IMPORTANT]
+> Como decidimos implementar testes para validar a inicialização e validação do cliente do Redis, e estamos validando o `sucesso` ou `falha` da conexão, faz-se necessário que o container do `redis` esteja de pé para que este teste seja executado em sua plenitude. Porém para evitarmos falhas nos testes, implementamos um mecanismo de validação, que em caso do `redis` não estar disponível o teste de `sucesso` será `skipado`.
 
 ## Executando o Projeto
 
