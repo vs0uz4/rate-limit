@@ -8,6 +8,7 @@
     - [Requisitos do Desafio](#requisitos-do-desafio)
     - [Exemplos](#exemplos)
     - [Entrega](#entrega)
+  - [O que é o Rate Limiter](#o-que-é-o-rate-limiter)
   - [Funcionalidades](#funcionalidades)
   - [Requisitos](#requisitos)
     - [Tecnologias](#tecnologias)
@@ -15,15 +16,14 @@
     - [Exemplo de `TOKEN_LIMITS`](#exemplo-de-token_limits)
     - [Endpoints](#endpoints)
   - [Testes Automatizados](#testes-automatizados)
-  - [Como Usar](#como-usar)
+  - [Executando o Projeto](#executando-o-projeto)
     - [Passos](#passos)
   - [Exemplos de CURL](#exemplos-de-curl)
-    - [Sem token:](#sem-token)
-    - [Com token:](#com-token)
+    - [Sem token](#sem-token)
+    - [Com token](#com-token)
+    - [Com token inválido/inexistente](#com-token-inválidoinexistente)
 
 ## Desafio GoLang Pós GoExpert - Rate Limiter
-
-Este projeto implementa um Rate Limiter robusto para controle de requisições por IP e token, utilizando o Redis como mecanismo de persistência. A solução foi desenvolvida com foco em extensibilidade, eficiência e simplicidade de configuração.
 
 Este projeto faz parte da Pós GoExpert como desafio, nele precisaríamos criar um `rate limiter` que pudesse ser utilizado para controlar o tráfego de requisições para um serviço web. O `rate limiter` deveria ser capaz de limitar o número de requisições com base em dois critérios:
 
@@ -70,39 +70,43 @@ Nos dois casos acima, as próximas requisições poderão ser realizadas somente
 - Utilize docker/docker-compose para que possamos realizar os testes de sua aplicação.
 - O servidor web deve responder na porta 8080.
 
+## O que é o Rate Limiter
+
+Este projeto implementa um **Rate Limiter** robusto para controle de requisições por IP e token, utilizando o Redis como mecanismo de persistência. A solução foi desenvolvida com foco em extensibilidade, eficiência e simplicidade de configuração.
+
 ## Funcionalidades
 
-- Limitação de requisições por IP e/ou token de acesso único.
+- Limitação de requisições por **IP** e/ou **TOKEN** de acesso único.
 - Configuração granular de limites por segundo para cada token.
-- Configuração do tempo de bloqueio por IP/token após exceder o limite.
+- Configuração do tempo de bloqueio por IP/TOKEN após exceder o limite.
 - Middleware flexível para injeção no servidor web.
-- Troca fácil do mecanismo de persistência através da estratégia PersistenceProvider.
-- Todas as configurações realizadas via variáveis de ambiente ou arquivo .env.
+- Troca fácil do mecanismo de persistência através da estratégia **PersistenceProvider**.
+- Todas as configurações realizadas via variáveis de ambiente ou arquivo **.env**.
 
 ## Requisitos
 
 ### Tecnologias
 
-- Golang: Linguagem principal;
-- Redis: Base de dados para persistência;
-- Docker: Containerização da aplicação e redis.
+- **Golang**: Linguagem principal;
+- **Redis**: Base de dados para persistência;
+- **Docker**: Containerização da aplicação e redis.
 
 ### Configurações
 
-As configurações do sistema podem ser realizadas via variáveis de ambiente ou no arquivo `.env` na raiz do projeto:
+As configurações do sistema podem ser realizadas via **variáveis de ambiente** ou no arquivo `.env` na raiz do projeto:
 
 | Variável          | Descrição                              | Valor Padrão     |
 |-------------------|----------------------------------------|------------------|
 | REDIS_HOST        | Host do Redis                          | **Obrigatório**  |
-| REDIS_PORT        | Porta do Redis                         | 6379             |
-| LIMITER_IP_LIMIT  | Limite global por IP (req/seg)         | 5                |
-| BLOCK_DURATION    | Duração do bloqueio em segundos        | 300              |
+| REDIS_PORT        | Porta do Redis                         | `6379`           |
+| LIMITER_IP_LIMIT  | Limite global por IP (req/seg)         | `5`              |
+| BLOCK_DURATION    | Duração do bloqueio em segundos        | `300`            |
 | TOKEN_LIMITS      | Limites customizados por token (JSON)  | Exemplo abaixo   |
 
 ### Exemplo de `TOKEN_LIMITS`
 
 ```json
-{"example_token": 10, "premium_token": 50}
+{"token1":10,"token2":15,"token3":20,"token4":30}
 ```
 
 ### Endpoints
@@ -115,18 +119,20 @@ A aplicação possui **100%** de cobertura de testes nas seguintes áreas:
 
 - Lógica principal do rate limiter.
 - Middleware para controle de requisições.
-- Integração com o Redis.
+- Integração com o Redis, , incluindo inicialização e validação do cliente.
 - Cenários de erro, incluindo persistência e TTL.
 
-## Como Usar
+## Executando o Projeto
+
+O projeto foi desenvolvido utilizando Docker/Docker Compose de modo a facilitar a execução do mesmo, entõ para poder executar o projeto basta seguir os passos descritos abaixo.
 
 ### Passos
 
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/seu_usuario/rate-limiter.git
-cd rate-limiter
+git clone https://github.com/vs0uz4/rate-limit.git
+cd rate-limit
 ```
 
 2. Configure o `.env` na raiz com base no arquivo `.env.example`.
@@ -137,21 +143,39 @@ cd rate-limiter
 docker-compose up --build
 ```
 
+> [!TIP]
+> Certifique-se que não tenha nada rodando em sua máquina nas portas `8080`, `8081` e `6379` que são as portas utilizadas pelo projeto e suas dependências.
+>
+> 8080 - Aplicação \
+> 8081 - UI Redis Commander \
+> 6379 - Redis Server
+
 4. Faça requisições para o endpoint **GET /ping**.
 
 ## Exemplos de CURL
 
-### Sem token:
+### Sem token
 
 ```bash
 curl --request GET \
   --url <http://localhost:8080/ping>
 ```
 
-### Com token:
+### Com token
 
 ```bash
 curl --request GET \
   --url <http://localhost:8080/ping> \
   --header 'API_KEY: token1'
 ```
+
+### Com token inválido/inexistente
+
+```bash
+curl --request GET \
+  --url <http://localhost:8080/ping> \
+  --header 'API_KEY: invalid_token'
+```
+
+> [!IMPORTANT]
+> No caso de requisições com **TOKENS** inválidos, ou seja, que não constem na ENV `TOKEN_LIMITS` a request será tratada com o limite de bloqueio padrão para IP, que no momento atual, está configurado para 5 req/s.
