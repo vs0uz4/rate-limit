@@ -23,3 +23,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
+
+  redis-ui:
+    image: rediscommander/redis-commander:latest
+    container_name: ui.redis_commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
